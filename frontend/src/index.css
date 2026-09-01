@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#0B132B] text-slate-100 font-sans min-h-screen;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading tracking-wide;
+  }
+}
+
+.glass-panel {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 30px -10px rgba(0, 0, 0, 0.6);
+}
+
+.badge-real-data {
+  @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold font-mono bg-emerald-950/80 text-emerald-400 border border-emerald-500/40 tracking-wide;
+}
+
+.badge-simulated-data {
+  @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold font-mono bg-cyan-950/80 text-cyan-400 border border-cyan-500/40 tracking-wide;
+}
+
+.data-value {
+  @apply font-mono tabular-nums;
+}
