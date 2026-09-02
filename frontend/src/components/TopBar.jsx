@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Radio, Snowflake, Clock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ShieldCheck, Radio, Snowflake, Clock, LogOut, CircleUserRound } from 'lucide-react';
 import DataBadge from './DataBadge';
+import { useAuth } from '../auth/AuthContext';
 
 export default function TopBar() {
   const [time, setTime] = useState(new Date().toUTCString());
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -11,6 +15,11 @@ export default function TopBar() {
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login', { replace: true });
+  };
 
   return (
     <header className="h-16 px-6 flex items-center justify-between sticky top-0 z-40
@@ -48,6 +57,30 @@ export default function TopBar() {
           <Radio className="w-3.5 h-3.5 animate-pulse" />
           <span className="font-semibold font-mono tracking-wider">LINK ACTIVE</span>
         </div>
+
+        {user && (
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 text-xs bg-white/[0.05] backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10">
+              <CircleUserRound className="w-4 h-4 text-cyan-300" />
+              <span className="text-slate-200 font-semibold">{user.username}</span>
+              <span className={`font-heading uppercase tracking-wider px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                user.role === 'admin'
+                  ? 'bg-cyan-400/20 text-cyan-300 border border-cyan-400/40'
+                  : 'bg-blue-400/20 text-blue-300 border border-blue-400/40'
+              }`}>
+                {user.role}
+              </span>
+            </div>
+            <button
+              onClick={handleLogout}
+              title="Sign out"
+              className="flex items-center gap-1.5 text-xs text-slate-300 bg-white/[0.05] hover:bg-rose-500/15 hover:text-rose-300 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/10 transition-all"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Sign Out</span>
+            </button>
+          </div>
+        )}
       </div>
     </header>
   );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
 import {
   LayoutDashboard,
   Box,
@@ -12,18 +13,21 @@ import {
 } from 'lucide-react';
 
 const navItems = [
-  { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/station/maitri', label: 'Maitri Station Twin', icon: Box },
-  { path: '/station/bharati', label: 'Bharati Station Twin', icon: Box },
-  { path: '/energy', label: 'Energy Management', icon: Zap },
-  { path: '/logistics', label: 'Logistics & Inventory', icon: Truck },
-  { path: '/environment', label: 'Environmental Monitor', icon: CloudSun },
-  { path: '/maintenance', label: 'Predictive Maintenance', icon: Wrench },
-  { path: '/simulation', label: 'What-If Simulation', icon: Sliders },
-  { path: '/assistant', label: 'AI Operations Assistant', icon: BotMessageSquare },
+  { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'operator'] },
+  { path: '/station/maitri', label: 'Maitri Station Twin', icon: Box, roles: ['admin', 'operator'] },
+  { path: '/station/bharati', label: 'Bharati Station Twin', icon: Box, roles: ['admin', 'operator'] },
+  { path: '/energy', label: 'Energy Management', icon: Zap, roles: ['admin', 'operator'] },
+  { path: '/logistics', label: 'Logistics & Inventory', icon: Truck, roles: ['admin', 'operator'] },
+  { path: '/environment', label: 'Environmental Monitor', icon: CloudSun, roles: ['admin', 'operator'] },
+  { path: '/maintenance', label: 'Predictive Maintenance', icon: Wrench, roles: ['admin', 'operator'] },
+  { path: '/simulation', label: 'What-If Simulation', icon: Sliders, roles: ['admin', 'operator'] },
+  { path: '/assistant', label: 'AI Operations Assistant', icon: BotMessageSquare, roles: ['admin', 'operator'] },
 ];
 
 export default function Sidebar() {
+  const { user } = useAuth();
+  const visibleItems = navItems.filter((item) => !item.roles || (user && item.roles.includes(user.role)));
+
   return (
     <aside
       className="w-64 min-h-[calc(100vh-4rem)] p-4 flex flex-col justify-between shrink-0
@@ -35,7 +39,7 @@ export default function Sidebar() {
         <div className="px-3 py-2 text-[11px] font-bold text-slate-500 uppercase tracking-widest font-heading">
           Control Center Modules
         </div>
-        {navItems.map((item) => {
+        {visibleItems.map((item) => {
           const Icon = item.icon;
           return (
             <NavLink
