@@ -6,8 +6,8 @@ import { Thermometer, Zap, Fuel, Droplet, Users, ShieldAlert } from 'lucide-reac
 
 export default function StationMaitri() {
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between shrink-0">
         <div>
           <div className="flex items-center space-x-3">
             <h2 className="text-2xl font-bold text-white tracking-tight">Maitri Station Digital Twin</h2>
@@ -19,7 +19,7 @@ export default function StationMaitri() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6 shrink-0">
         <MetricCard title="Real Outdoor Temp" value="-28.4" unit="°C" icon={Thermometer} dataType="real" />
         <MetricCard title="Station Population" value="25" unit="Personnel" icon={Users} dataType="simulated" />
         <MetricCard title="Total Power Load" value="315" unit="kW" icon={Zap} dataType="simulated" />
@@ -27,7 +27,9 @@ export default function StationMaitri() {
       </div>
 
       {/* 3D Scene View */}
-      <Station3D stationName="Maitri" />
+      <div className="flex-1 min-h-0 mt-6">
+        <Station3D stationName="Maitri" />
+      </div>
     </div>
   );
 }

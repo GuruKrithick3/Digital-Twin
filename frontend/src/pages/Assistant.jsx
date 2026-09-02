@@ -49,8 +49,8 @@ export default function Assistant() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-between shrink-0">
         <div>
           <div className="flex items-center space-x-3">
             <h2 className="text-2xl font-bold text-white tracking-tight">AI Operations Assistant</h2>
@@ -79,7 +79,7 @@ export default function Assistant() {
         </div>
       </div>
 
-      <div className="glass-panel rounded-xl h-[600px] flex flex-col justify-between overflow-hidden">
+      <div className="glass-panel rounded-xl flex flex-col min-h-0 flex-1 overflow-hidden mt-6">
         {/* Chat Thread */}
         <div className="p-6 overflow-y-auto space-y-4 flex-1">
           {messages.map((msg, i) => (

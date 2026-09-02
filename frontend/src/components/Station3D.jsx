@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Text, Html } from '@react-three/drei';
+import { OrbitControls, Text, Html, Billboard } from '@react-three/drei';
 import DataBadge from './DataBadge';
 import { X, ShieldAlert, Cpu } from 'lucide-react';
 
@@ -15,20 +15,21 @@ function BuildingBox({ position, args, color, name, onClick, isSelected }) {
           metalness={0.4}
         />
       </mesh>
-      <Text
-        position={[0, args[1] / 2 + 0.6, 0]}
-        fontSize={0.4}
-        color="#E0FBFC"
-        anchorX="center"
-        anchorY="middle"
-      >
-        {name}
-      </Text>
+      <Billboard position={[0, args[1] / 2 + 0.6, 0]}>
+        <Text
+          fontSize={0.4}
+          color="#E0FBFC"
+          anchorX="center"
+          anchorY="middle"
+        >
+          {name}
+        </Text>
+      </Billboard>
     </group>
   );
 }
 
-export default function Station3D({ stationName = 'Bharati' }) {
+export default function Station3D({ stationName = 'Bharati', className = '' }) {
   const isMaitri = stationName.toLowerCase() === 'maitri';
   const [selectedComponent, setSelectedComponent] = useState(null);
 
@@ -52,7 +53,7 @@ export default function Station3D({ stationName = 'Bharati' }) {
       ];
 
   return (
-    <div className="relative w-full h-[600px] rounded-xl overflow-hidden glass-panel border border-[#2A365C]">
+    <div className={`relative w-full h-full min-h-[300px] rounded-xl overflow-hidden glass-panel border border-[#2A365C] ${className}`}>
       {/* Top Banner overlay */}
       <div className="absolute top-4 left-4 z-10 bg-[#0B132B]/90 backdrop-blur-md px-4 py-2 rounded-lg border border-[#2A365C] flex items-center space-x-3">
         <Cpu className="w-5 h-5 text-cyan-400" />
@@ -91,7 +92,7 @@ export default function Station3D({ stationName = 'Bharati' }) {
           />
         ))}
 
-        <OrbitControls enablePan={true} enableZoom={true} maxPolarAngle={Math.PI / 2 - 0.05} />
+        <OrbitControls enablePan={true} enableZoom={true} minDistance={8} maxDistance={35} maxPolarAngle={Math.PI / 2 - 0.05} />
       </Canvas>
 
       {/* Component Detail Drawer */}

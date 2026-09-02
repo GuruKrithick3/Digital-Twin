@@ -29,6 +29,8 @@ export default function Simulation() {
   const [temperature, setTemperature] = useState(-25);
   const [windSpeed, setWindSpeed] = useState(40);
   const [population, setPopulation] = useState(45);
+
+  const stationMaxPopulation = station === 'Bharati' ? 72 : 65;
   const [fuelLevelLiters, setFuelLevelLiters] = useState(180000);
   const [energyDemandKw, setEnergyDemandKw] = useState(340);
   const [simResult, setSimResult] = useState(null);
@@ -94,7 +96,12 @@ export default function Simulation() {
               <label className="text-slate-300 font-semibold mb-1.5 block tracking-wide">Station Select</label>
               <select
                 value={station}
-                onChange={(e) => setStation(e.target.value)}
+                onChange={(e) => {
+                  const newStation = e.target.value;
+                  setStation(newStation);
+                  const max = newStation === 'Bharati' ? 72 : 65;
+                  setPopulation((prev) => Math.min(prev, max));
+                }}
                 className="w-full bg-white/[0.04] border border-white/10 rounded-lg p-2.5 text-white text-sm
                            focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30
                            transition-colors appearance-none cursor-pointer"
@@ -157,7 +164,7 @@ export default function Simulation() {
               <input
                 type="range"
                 min="10"
-                max="80"
+                max={stationMaxPopulation}
                 value={population}
                 onChange={(e) => setPopulation(e.target.value)}
                 className="w-full h-1.5 rounded-full appearance-none cursor-pointer bg-white/10 accent-cyan-400
