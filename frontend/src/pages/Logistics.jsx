@@ -1,8 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import MetricCard from '../components/MetricCard';
+import React, { useState, useEffect, useMemo } from 'react';
 import DataBadge from '../components/DataBadge';
 import { fetchLogistics } from '../services/api';
-import { Fuel, Droplet, PackageCheck, AlertCircle, Calendar } from 'lucide-react';
+import { Calendar, ArrowDown } from 'lucide-react';
+
+const RISK_STYLES = {
+  HIGH: { text: 'text-rose-400', chip: 'bg-rose-500/15 text-rose-400 border-rose-500/40', bar: 'bg-rose-500' },
+  MODERATE: { text: 'text-amber-400', chip: 'bg-amber-500/15 text-amber-400 border-amber-500/40', bar: 'bg-amber-500' },
+  LOW: { text: 'text-emerald-400', chip: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40', bar: 'bg-emerald-500' },
+};
 
 export default function Logistics() {
   const [station, setStation] = useState('Bharati');
@@ -12,93 +17,101 @@ export default function Logistics() {
     fetchLogistics(station).then(res => setLogisticsData(res.data)).catch(() => {});
   }, [station]);
 
+  const sortedInventory = useMemo(() => {
+    return [...(logisticsData?.inventory || [])].sort((a, b) => a.daysRemaining - b.daysRemaining);
+  }, [logisticsData]);
+
+  const criticalCount = sortedInventory.filter(i => i.riskRating === 'HIGH').length;
+  const maxDays = Math.max(...sortedInventory.map(i => i.daysRemaining), 1);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white tracking-tight">Logistics, Inventory & Resupply Twin</h2>
-          <p className="text-sm text-slate-400">Dynamic inventory tracking, burn-rate calculation, and Antarctic voyage resupply scheduling</p>
+          <h2 className="text-2xl font-bold text-white tracking-tight">Inventory & resupply</h2>
+          <p className="text-sm text-slate-400">Stock levels, burn rate, and when the next voyage should leave</p>
         </div>
 
         <div className="flex items-center space-x-2 bg-[#1C2541] p-1 rounded-lg border border-[#2A365C]">
-          <button
-            onClick={() => setStation('Maitri')}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-              station === 'Maitri' ? 'bg-[#3A86FF] text-white' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Maitri
-          </button>
-          <button
-            onClick={() => setStation('Bharati')}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-              station === 'Bharati' ? 'bg-[#3A86FF] text-white' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Bharati
-          </button>
+          {['Maitri', 'Bharati'].map(s => (
+            <button
+              key={s}
+              onClick={() => setStation(s)}
+              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                station === s ? 'bg-[#3A86FF] text-white' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              {s}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Inventory Table */}
+      {/* Resupply recommendation moved up top — it's the answer, not a footnote */}
+      <div className="glass-panel p-5 rounded-xl border-l-4 border-l-[#3A86FF]">
+        <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center space-x-3">
+            <Calendar className="w-5 h-5 text-cyan-400 shrink-0" />
+            <div>
+              <p className="text-xs text-slate-400">Recommended resupply window</p>
+              <p className="font-bold text-white text-base">
+                {logisticsData?.resupplyRecommendation?.recommendedWindow || '—'}
+              </p>
+            </div>
+          </div>
+          <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
+            RISK_STYLES[logisticsData?.resupplyRecommendation?.urgency]?.chip || RISK_STYLES.LOW.chip
+          }`}>
+            {logisticsData?.resupplyRecommendation?.urgency || 'MODERATE'} urgency
+          </span>
+        </div>
+        {criticalCount > 0 && (
+          <p className="text-xs text-rose-400 mt-3 flex items-center gap-1.5">
+            <ArrowDown className="w-3.5 h-3.5" />
+            {criticalCount} item{criticalCount > 1 ? 's' : ''} at high risk of running out — see below
+          </p>
+        )}
+      </div>
+
+      {/* Inventory list, most urgent first */}
       <div className="glass-panel p-5 rounded-xl">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-white text-base">Critical Station Inventory Health</h3>
+          <h3 className="font-bold text-white text-base">Stock levels, most urgent first</h3>
           <DataBadge type="simulated" />
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-[#0B132B] text-slate-400 font-semibold border-b border-[#2A365C]">
-              <tr>
-                <th className="p-3">Item Category</th>
-                <th className="p-3">Resource Name</th>
-                <th className="p-3">Current Stock</th>
-                <th className="p-3">Daily Burn</th>
-                <th className="p-3">Days Remaining</th>
-                <th className="p-3">Predicted Depletion</th>
-                <th className="p-3">Risk Rating</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#2A365C]">
-              {logisticsData?.inventory?.map((item, idx) => (
-                <tr key={idx} className="hover:bg-[#1C2541]/40 transition-colors">
-                  <td className="p-3 font-semibold uppercase text-cyan-300">{item.itemCategory}</td>
-                  <td className="p-3 text-white font-medium">{item.itemName}</td>
-                  <td className="p-3 font-mono text-slate-200">{item.currentStock.toLocaleString()} {item.unit}</td>
-                  <td className="p-3 font-mono text-slate-300">{item.dailyConsumption} / day</td>
-                  <td className="p-3 font-mono font-bold text-amber-300">{item.daysRemaining} days</td>
-                  <td className="p-3 font-mono text-slate-300">{item.predictedDepletionDate}</td>
-                  <td className="p-3">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
-                      item.riskRating === 'HIGH' ? 'bg-rose-500/20 text-rose-400 border-rose-500/40' :
-                      item.riskRating === 'MODERATE' ? 'bg-amber-500/20 text-amber-400 border-amber-500/40' :
-                      'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
-                    }`}>
-                      {item.riskRating}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+        <div className="space-y-2">
+          {sortedInventory.map((item, idx) => {
+            const style = RISK_STYLES[item.riskRating] || RISK_STYLES.LOW;
+            const fillPct = Math.min(100, Math.round((item.daysRemaining / maxDays) * 100));
 
-      {/* Resupply Recommendation Panel */}
-      <div className="glass-panel p-5 rounded-xl border-l-4 border-l-[#3A86FF]">
-        <div className="flex items-center space-x-3 mb-3">
-          <Calendar className="w-5 h-5 text-cyan-400" />
-          <h3 className="font-bold text-white text-base">NCPOR Voyage Resupply Recommendation</h3>
-        </div>
-        <p className="text-xs text-slate-300 leading-relaxed mb-3">
-          Recommended Resupply Window: <span className="font-semibold text-cyan-300">{logisticsData?.resupplyRecommendation?.recommendedWindow}</span>
-        </p>
-        <div className="flex items-center space-x-2 text-xs">
-          <span className="text-slate-400">Risk Assessment Rating:</span>
-          <span className="px-2.5 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-bold">
-            {logisticsData?.resupplyRecommendation?.urgency || 'MODERATE'}
-          </span>
+            return (
+              <div key={idx} className="flex items-center gap-4 py-2.5 px-3 rounded-lg hover:bg-[#1C2541]/40 transition-colors">
+                <div className="w-40 shrink-0">
+                  <p className="text-white text-sm font-medium truncate">{item.itemName}</p>
+                  <p className="text-[11px] text-slate-500 uppercase">{item.itemCategory}</p>
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="h-1.5 rounded-full bg-[#0B132B] overflow-hidden">
+                    <div className={`h-full rounded-full ${style.bar}`} style={{ width: `${fillPct}%` }} />
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    {item.currentStock.toLocaleString()} {item.unit} · using {item.dailyConsumption}/day · depletes {item.predictedDepletionDate}
+                  </p>
+                </div>
+
+                <div className="text-right shrink-0 w-20">
+                  <p className={`font-mono font-bold text-sm ${style.text}`}>{item.daysRemaining}d</p>
+                  <p className="text-[10px] text-slate-500">left</p>
+                </div>
+
+                <span className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-bold border ${style.chip}`}>
+                  {item.riskRating}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

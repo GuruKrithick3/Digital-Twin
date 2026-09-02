@@ -1,19 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DataBadge from '../components/DataBadge';
 import { queryAssistant } from '../services/api';
 import { BotMessageSquare, Send, User, Sparkles, Database } from 'lucide-react';
 
+const STORAGE_KEY = 'assistant-conversation';
+
+const initialMessage = {
+  sender: 'assistant',
+  text: 'Greetings. I am the Antarctic Twin AI Operational Assistant. I query live telemetry, energy models, and logistics reserves from Maitri & Bharati to answer operational queries with grounded precision. How may I assist station management today?',
+  grounding: null
+};
+
+function loadMessages() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {
+    // ignore corrupted storage
+  }
+  return [initialMessage];
+}
+
 export default function Assistant() {
   const [station, setStation] = useState('Bharati');
   const [input, setInput] = useState('');
-  const [messages, setMessages] = useState([
-    {
-      sender: 'assistant',
-      text: 'Greetings. I am the Antarctic Twin AI Operational Assistant. I query live telemetry, energy models, and logistics reserves from Maitri & Bharati to answer operational queries with grounded precision. How may I assist station management today?',
-      grounding: null
-    }
-  ]);
+  const [messages, setMessages] = useState(loadMessages);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+  }, [messages]);
 
   const handleSend = async (e) => {
     e.preventDefault();
