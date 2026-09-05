@@ -5,6 +5,16 @@ import { fetchEnergy } from '../services/api';
 import { Zap, Fuel, Activity, ArrowRight, Gauge } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
+const glassTooltipStyle = {
+  background: 'rgba(11, 19, 43, 0.95)',
+  backdropFilter: 'blur(12px)',
+  border: '1px solid rgba(255, 255, 255, 0.1)',
+  borderRadius: '8px',
+  fontSize: '12px',
+  color: '#f8fafc',
+  boxShadow: '0 8px 30px rgba(0,0,0,0.5)',
+};
+
 export default function Energy() {
   const [station, setStation] = useState('Bharati');
   const [energyData, setEnergyData] = useState(null);
@@ -15,29 +25,24 @@ export default function Energy() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-white tracking-tight">Energy Management & Generation Twin</h2>
-          <p className="text-sm text-slate-400">Power generation, consumption, CHP thermal loops & fuel efficiency tracking</p>
+          <h2 className="text-2xl font-bold text-white font-heading tracking-wide">Energy Management & Generation Twin</h2>
+          <p className="text-xs text-slate-400 font-sans mt-0.5">Power generation, consumption, CHP thermal loops & fuel efficiency tracking</p>
         </div>
 
-        <div className="flex items-center space-x-2 bg-[#1C2541] p-1 rounded-lg border border-[#2A365C]">
-          <button
-            onClick={() => setStation('Maitri')}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-              station === 'Maitri' ? 'bg-[#3A86FF] text-white' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Maitri
-          </button>
-          <button
-            onClick={() => setStation('Bharati')}
-            className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-              station === 'Bharati' ? 'bg-[#3A86FF] text-white' : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            Bharati
-          </button>
+        <div className="flex items-center space-x-1.5 bg-slate-900/60 p-1 rounded-lg border border-white/[0.08]">
+          {['Maitri', 'Bharati'].map(s => (
+            <button
+              key={s}
+              onClick={() => setStation(s)}
+              className={`px-3.5 py-1.5 rounded-md text-xs font-semibold font-heading tracking-wider transition-all ${
+                station === s ? 'bg-[#3A86FF] text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              {s}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -52,31 +57,31 @@ export default function Energy() {
       <div className="glass-panel p-5 rounded-xl">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="font-bold text-white text-base">Generation vs Consumption Trend (24 Hours)</h3>
-            <p className="text-xs text-slate-400">Real-time load balancing and power stability envelope</p>
+            <h3 className="font-bold text-white font-heading tracking-wide text-base">Generation vs Consumption Trend (24 Hours)</h3>
+            <p className="text-xs text-slate-400 font-sans mt-0.5">Real-time load balancing and power stability envelope</p>
           </div>
           <DataBadge type="simulated" />
         </div>
 
         <div className="h-72 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={energyData?.history24h || []}>
+            <AreaChart data={energyData?.history24h || []} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorGen" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#00F5D4" stopOpacity={0.4}/>
+                  <stop offset="5%" stopColor="#00F5D4" stopOpacity={0.3}/>
                   <stop offset="95%" stopColor="#00F5D4" stopOpacity={0}/>
                 </linearGradient>
                 <linearGradient id="colorCon" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3A86FF" stopOpacity={0.4}/>
+                  <stop offset="5%" stopColor="#3A86FF" stopOpacity={0.3}/>
                   <stop offset="95%" stopColor="#3A86FF" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#2A365C" />
-              <XAxis dataKey="time" stroke="#94A3B8" fontSize={11} />
-              <YAxis stroke="#94A3B8" fontSize={11} />
-              <Tooltip contentStyle={{ backgroundColor: '#0B132B', borderColor: '#2A365C', borderRadius: '8px' }} />
-              <Area type="monotone" dataKey="generationKw" name="Generation (kW)" stroke="#00F5D4" fillOpacity={1} fill="url(#colorGen)" />
-              <Area type="monotone" dataKey="consumptionKw" name="Consumption (kW)" stroke="#3A86FF" fillOpacity={1} fill="url(#colorCon)" />
+              <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
+              <XAxis dataKey="time" stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} />
+              <YAxis stroke="#64748b" fontSize={11} tickLine={false} axisLine={false} width={36} />
+              <Tooltip contentStyle={glassTooltipStyle} labelStyle={{ color: '#94a3b8' }} />
+              <Area type="monotone" dataKey="generationKw" name="Generation (kW)" stroke="#00F5D4" strokeWidth={2} fillOpacity={1} fill="url(#colorGen)" />
+              <Area type="monotone" dataKey="consumptionKw" name="Consumption (kW)" stroke="#3A86FF" strokeWidth={2} fillOpacity={1} fill="url(#colorCon)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -85,28 +90,29 @@ export default function Energy() {
       {/* Energy Flow Visualization */}
       <div className="glass-panel p-5 rounded-xl">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-bold text-white text-base">Station Microgrid Energy Flow Pipeline</h3>
+          <h3 className="font-bold text-white font-heading tracking-wide text-base">Station Microgrid Energy Flow Pipeline</h3>
           <DataBadge type="simulated" />
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-lg bg-[#0B132B]/80 border border-[#2A365C]">
-          <div className="text-center p-3 rounded-lg bg-[#1C2541] border border-cyan-500/40">
-            <p className="text-xs text-slate-400">Generators / CHP</p>
-            <p className="text-lg font-bold font-mono text-cyan-300">{energyData?.current?.generationKw || 420} kW</p>
+        <div className="flex flex-wrap items-center justify-between gap-4 p-5 rounded-xl bg-slate-900/40 border border-white/[0.06]">
+          <div className="text-center p-3.5 rounded-lg bg-slate-900/80 border border-cyan-500/30">
+            <p className="text-xs text-slate-400 font-heading font-semibold uppercase tracking-wider">Generators / CHP</p>
+            <p className="text-lg font-bold font-mono text-cyan-300 mt-1">{energyData?.current?.generationKw || 420} kW</p>
           </div>
-          <ArrowRight className="w-5 h-5 text-slate-500" />
-          <div className="text-center p-3 rounded-lg bg-[#1C2541] border border-blue-500/40">
-            <p className="text-xs text-slate-400">Distribution Switchgear</p>
-            <p className="text-lg font-bold font-mono text-blue-300">100% Nominal</p>
+          <ArrowRight className="w-5 h-5 text-slate-500 shrink-0" />
+          <div className="text-center p-3.5 rounded-lg bg-slate-900/80 border border-blue-500/30">
+            <p className="text-xs text-slate-400 font-heading font-semibold uppercase tracking-wider">Distribution Switchgear</p>
+            <p className="text-lg font-bold font-mono text-blue-300 mt-1">100% Nominal</p>
           </div>
-          <ArrowRight className="w-5 h-5 text-slate-500" />
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="bg-[#1C2541] p-2 rounded border border-[#2A365C]">Building: 173 kW</div>
-            <div className="bg-[#1C2541] p-2 rounded border border-[#2A365C]">Heating: 135 kW</div>
-            <div className="bg-[#1C2541] p-2 rounded border border-[#2A365C]">Labs: 46 kW</div>
-            <div className="bg-[#1C2541] p-2 rounded border border-[#2A365C]">Utilities: 31 kW</div>
+          <ArrowRight className="w-5 h-5 text-slate-500 shrink-0" />
+          <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+            <div className="bg-slate-900/80 p-2.5 rounded-lg border border-white/[0.08] text-slate-200">Building: 173 kW</div>
+            <div className="bg-slate-900/80 p-2.5 rounded-lg border border-white/[0.08] text-slate-200">Heating: 135 kW</div>
+            <div className="bg-slate-900/80 p-2.5 rounded-lg border border-white/[0.08] text-slate-200">Labs: 46 kW</div>
+            <div className="bg-slate-900/80 p-2.5 rounded-lg border border-white/[0.08] text-slate-200">Utilities: 31 kW</div>
           </div>
         </div>
       </div>
     </div>
   );
 }
+

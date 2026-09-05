@@ -30,13 +30,12 @@ export default function Sidebar() {
 
   return (
     <aside
-      className="w-64 min-h-[calc(100vh-4rem)] p-4 flex flex-col justify-between shrink-0
-                 bg-black/40 backdrop-blur-2xl border-r border-white/10
-                 shadow-[inset_-1px_0_0_rgba(255,255,255,0.04)]
+      className="w-64 min-h-[calc(100vh-4rem)] p-3 flex flex-col justify-between shrink-0
+                 bg-[#0B132B]/90 backdrop-blur-xl border-r border-white/[0.08]
                  sticky top-16 self-start max-h-[calc(100vh-4rem)] overflow-y-auto"
     >
       <nav className="space-y-1">
-        <div className="px-3 py-2 text-[11px] font-bold text-slate-500 uppercase tracking-widest font-heading">
+        <div className="px-3 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest font-heading">
           Control Center Modules
         </div>
         {visibleItems.map((item) => {
@@ -46,12 +45,12 @@ export default function Sidebar() {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `group relative flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-semibold font-heading tracking-wide
-                 transition-all duration-300 ease-out overflow-hidden
+                `group relative flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-semibold font-heading tracking-wide
+                 transition-all duration-200 ease-out overflow-hidden
                  ${
                    isActive
-                     ? 'text-cyan-300 bg-white/[0.06] backdrop-blur-md border border-cyan-400/30 shadow-[0_0_20px_-4px_rgba(0,245,212,0.35)]'
-                     : 'text-slate-400 border border-transparent hover:text-white hover:bg-white/[0.04] hover:border-white/10'
+                     ? 'text-cyan-300 bg-white/[0.06] border border-cyan-400/30 shadow-[0_0_15px_-3px_rgba(0,245,212,0.2)]'
+                     : 'text-slate-400 border border-transparent hover:text-slate-200 hover:bg-white/[0.04] hover:border-white/[0.06]'
                  }`
               }
             >
@@ -59,16 +58,14 @@ export default function Sidebar() {
                 <>
                   {/* active left accent bar */}
                   <span
-                    className={`absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full bg-gradient-to-b from-cyan-400 to-blue-500 transition-all duration-300 ${
+                    className={`absolute left-0 top-1/2 -translate-y-1/2 w-[3px] rounded-r-full bg-gradient-to-b from-cyan-400 to-blue-500 transition-all duration-200 ${
                       isActive ? 'h-5 opacity-100' : 'h-0 opacity-0'
                     }`}
                   />
-                  {/* subtle hover sheen */}
-                  <span className="pointer-events-none absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent" />
 
                   <Icon
-                    className={`w-4 h-4 shrink-0 transition-colors duration-300 ${
-                      isActive ? 'text-cyan-300' : 'text-slate-500 group-hover:text-cyan-400'
+                    className={`w-4 h-4 shrink-0 transition-colors duration-200 ${
+                      isActive ? 'text-cyan-400' : 'text-slate-500 group-hover:text-cyan-400'
                     }`}
                   />
                   <span className="relative z-10 truncate">{item.label}</span>
@@ -79,20 +76,20 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <div className="relative p-3 rounded-xl bg-white/[0.04] backdrop-blur-md border border-white/10 text-xs text-slate-400 overflow-hidden">
-        <div className="flex items-center justify-between text-cyan-300 font-semibold mb-1 font-heading tracking-wider">
-          <span className="tracking-wide">STATION METRICS</span>
-          <span className="flex items-center gap-1.5">
+      <div className="relative p-3 rounded-lg bg-slate-900/60 border border-white/[0.08] text-xs text-slate-400 overflow-hidden mt-4">
+        <div className="flex items-center justify-between text-cyan-300 font-semibold mb-1.5 font-heading tracking-wider text-[11px]">
+          <span>STATION COORDINATES</span>
+          <span className="flex items-center gap-1.5 font-mono text-[10px] text-emerald-400">
             <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-cyan-400" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400" />
             </span>
             LIVE
           </span>
         </div>
-        <p className="text-slate-400 data-value">Maitri: 70.7667° S, 11.7333° E</p>
-        <p className="text-slate-400 data-value">Bharati: 69.4068° S, 76.1952° E</p>
+        <p className="text-slate-300 font-mono text-[11px] leading-tight">Maitri: 70.7667° S, 11.7333° E</p>
+        <p className="text-slate-300 font-mono text-[11px] leading-tight mt-0.5">Bharati: 69.4068° S, 76.1952° E</p>
       </div>
     </aside>
   );
-}
+}

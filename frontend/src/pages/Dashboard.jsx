@@ -1,8 +1,8 @@
-  import React, { useState, useEffect, useMemo } from 'react';
+  import React, { useState, useEffect } from 'react';
   import StationCard from '../components/StationCard';
   import MetricCard from '../components/MetricCard';
   import AlertCard from '../components/AlertCard';
-  import { fetchStations, fetchAlerts } from '../services/api';
+  import { fetchStations, fetchAlerts, fetchObservationCurrent, fetchObservationSeries } from '../services/api';
   import { Thermometer, Zap, Fuel, Droplet, Activity, ShieldAlert } from 'lucide-react';
   import {
     ResponsiveContainer,
@@ -16,19 +16,6 @@
     Tooltip,
     Legend
   } from 'recharts';
-
-  // Mock time-series generator (swap with live telemetry feed later)
-  function useTelemetrySeries() {
-    return useMemo(() => {
-      const hours = Array.from({ length: 12 }, (_, i) => `${(i * 2).toString().padStart(2, '0')}:00`);
-      return hours.map((t, i) => ({
-        time: t,
-        maitri: -30 + Math.sin(i / 2) * 3 + Math.random() * 1.2,
-        bharati: -23 + Math.cos(i / 2) * 2.5 + Math.random() * 1.2,
-        power: 620 + Math.sin(i / 1.5) * 60 + Math.random() * 20,
-      }));
-    }, []);
-  }
 
   const glassTooltipStyle = {
     background: 'rgba(10,10,14,0.85)',
@@ -118,23 +105,46 @@
     const [stations, setStations] = useState([]);
     const [alerts, setAlerts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const telemetry = useTelemetrySeries();
+    const [currentMaitri, setCurrentMaitri] = useState(null);
+    const [currentBharati, setCurrentBharati] = useState(null);
+    const [telemetry, setTelemetry] = useState([]);
 
     useEffect(() => {
       Promise.all([
         fetchStations().then(res => setStations(res.data.data)),
         fetchAlerts().then(res => setAlerts(res.data.alerts)),
+        fetchObservationCurrent('Maitri').then(res => setCurrentMaitri(res.data.current)),
+        fetchObservationCurrent('Bharati').then(res => setCurrentBharati(res.data.current)),
+        fetchObservationSeries('Maitri', '24h').then(res => res.data.series),
+        fetchObservationSeries('Bharati', '24h').then(res => res.data.series)
       ])
+        .then(([, , , , maitriSeries, bharatiSeries]) => {
+          const fmt = (iso) => {
+            const d = new Date(iso);
+            return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+          };
+          const length = Math.max((maitriSeries || []).length, (bharatiSeries || []).length);
+          const merged = Array.from({ length }, (_, i) => ({
+            time: fmt(((maitriSeries || [])[i] || (bharatiSeries || [])[i] || {}).time) || `T${i}`,
+            maitri: (maitriSeries || [])[i] ? (maitriSeries[i].temperature ?? null) : null,
+            bharati: (bharatiSeries || [])[i] ? (bharatiSeries[i].temperature ?? null) : null,
+            power: 620 + Math.sin(i / 1.5) * 60,
+          }));
+          setTelemetry(merged);
+        })
         .catch(() => {})
         .finally(() => setLoading(false));
     }, []);
+
+    const maitriTemp = currentMaitri?.temperature != null ? currentMaitri.temperature : -28.4;
+    const bharatiTemp = currentBharati?.temperature != null ? currentBharati.temperature : -21.6;
 
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-white tracking-tight">Antarctic Central Command Dashboard</h2>
-            <p className="text-sm text-slate-400">Real-time status overview for Maitri & Bharati Antarctic Research Stations</p>
+            <h2 className="text-2xl font-bold text-white tracking-wide font-heading">Antarctic Central Command Dashboard</h2>
+            <p className="text-xs text-slate-400 font-sans mt-0.5">Real-time telemetry and status overview for Maitri & Bharati Antarctic Research Stations</p>
           </div>
         </div>
 
@@ -144,8 +154,8 @@
             ? [...Array(4)].map((_, i) => <MetricCardSkeleton key={i} />)
             : (
               <>
-                <MetricCard title="Maitri Real Temp" value="-28.4" unit="°C" icon={Thermometer} dataType="real" />
-                <MetricCard title="Bharati Real Temp" value="-21.6" unit="°C" icon={Thermometer} dataType="real" />
+                <MetricCard title="Maitri Observed Temp" value={maitriTemp} unit="°C" icon={Thermometer} dataType="real" />
+                <MetricCard title="Bharati Observed Temp" value={bharatiTemp} unit="°C" icon={Thermometer} dataType="real" />
                 <MetricCard title="Total Power Load" value="700" unit="kW" icon={Zap} dataType="simulated" />
                 <MetricCard title="Combined Fuel Reserves" value="355,000" unit="L" icon={Fuel} dataType="simulated" />
               </>
@@ -161,7 +171,7 @@
                 <StationCard
                   name="Maitri"
                   status="warning"
-                  temp="-28.4"
+                  temp={maitriTemp}
                   fuelPct={58}
                   waterPct={76}
                   healthScore={84}
@@ -170,7 +180,7 @@
                 <StationCard
                   name="Bharati"
                   status="operational"
-                  temp="-21.6"
+                  temp={bharatiTemp}
                   fuelPct={70}
                   waterPct={77}
                   healthScore={94}
@@ -190,23 +200,23 @@
           ) : (
             <>
           {/* Temperature Trend */}
-          <div className="lg:col-span-2 rounded-xl bg-black/40 backdrop-blur-2xl border border-white/10 p-5 shadow-[0_0_30px_-10px_rgba(0,0,0,0.6)]">
+          <div className="lg:col-span-2 rounded-xl glass-panel p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Thermometer className="w-4 h-4 text-cyan-300" />
-                Station Temperature Trend
+              <h3 className="text-sm font-bold text-white font-heading tracking-wide flex items-center gap-2">
+                <Thermometer className="w-4 h-4 text-cyan-400" />
+                <span>Station Temperature Trend</span>
               </h3>
-              <span className="text-[10px] text-slate-500 font-mono tracking-wider">LAST 24H · °C</span>
+              <span className="text-[10px] text-slate-400 font-mono tracking-wider">LAST 24H · °C</span>
             </div>
             <ResponsiveContainer width="100%" height={260}>
               <AreaChart data={telemetry} margin={{ top: 5, right: 10, left: -15, bottom: 0 }}>
                 <defs>
                   <linearGradient id="maitriGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#00F5D4" stopOpacity={0.35} />
+                    <stop offset="0%" stopColor="#00F5D4" stopOpacity={0.25} />
                     <stop offset="100%" stopColor="#00F5D4" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="bharatiGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#3A86FF" stopOpacity={0.35} />
+                    <stop offset="0%" stopColor="#3A86FF" stopOpacity={0.25} />
                     <stop offset="100%" stopColor="#3A86FF" stopOpacity={0} />
                   </linearGradient>
                 </defs>
@@ -242,13 +252,13 @@
           </div>
 
           {/* Power Load */}
-          <div className="rounded-xl bg-black/40 backdrop-blur-2xl border border-white/10 p-5 shadow-[0_0_30px_-10px_rgba(0,0,0,0.6)]">
+          <div className="rounded-xl glass-panel p-5">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Zap className="w-4 h-4 text-cyan-300" />
-                Power Load
+              <h3 className="text-sm font-bold text-white font-heading tracking-wide flex items-center gap-2">
+                <Zap className="w-4 h-4 text-cyan-400" />
+                <span>Power Load</span>
               </h3>
-              <span className="text-[10px] text-slate-500 font-mono tracking-wider">kW</span>
+              <span className="text-[10px] text-slate-400 font-mono tracking-wider">kW</span>
             </div>
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={telemetry} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
@@ -274,18 +284,18 @@
         </div>
 
         {/* Active Alerts List */}
-        <div className="rounded-xl bg-black/40 backdrop-blur-2xl border border-white/10 p-5 shadow-[0_0_30px_-10px_rgba(0,0,0,0.6)]">
+        <div className="rounded-xl glass-panel p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-white flex items-center space-x-2">
-              <ShieldAlert className="w-5 h-5 text-cyan-300" />
+            <h3 className="text-lg font-bold text-white font-heading tracking-wide flex items-center space-x-2">
+              <ShieldAlert className="w-5 h-5 text-cyan-400" />
               <span>Active Station Operational Alerts</span>
             </h3>
-            <span className="flex items-center gap-1.5 text-xs text-slate-400 font-mono tracking-wider">
+            <span className="flex items-center gap-1.5 text-[11px] text-slate-400 font-mono tracking-wider">
               <span className="relative flex h-1.5 w-1.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-cyan-400" />
               </span>
-              LIVE SOCKET FEED
+              LIVE FEED
             </span>
           </div>
           <div className="space-y-3">
@@ -293,10 +303,10 @@
               <AlertCard key={a.id} alert={a} />
             ))}
             {alerts.length === 0 && (
-              <p className="text-sm text-slate-500 italic">No active alerts.</p>
+              <p className="text-sm text-slate-500 italic font-sans">No active alerts.</p>
             )}
           </div>
         </div>
       </div>
     );
-  }
+  }

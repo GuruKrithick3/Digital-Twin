@@ -53,13 +53,13 @@ export default function Station3D({ stationName = 'Bharati', className = '' }) {
       ];
 
   return (
-    <div className={`relative w-full h-full min-h-[300px] rounded-xl overflow-hidden glass-panel border border-[#2A365C] ${className}`}>
+    <div className={`relative w-full h-full min-h-[300px] rounded-xl overflow-hidden glass-panel border border-white/[0.08] ${className}`}>
       {/* Top Banner overlay */}
-      <div className="absolute top-4 left-4 z-10 bg-[#0B132B]/90 backdrop-blur-md px-4 py-2 rounded-lg border border-[#2A365C] flex items-center space-x-3">
-        <Cpu className="w-5 h-5 text-cyan-400" />
+      <div className="absolute top-4 left-4 z-10 bg-[#0B132B]/90 backdrop-blur-md px-4 py-2 rounded-lg border border-white/10 flex items-center space-x-3 shadow-lg">
+        <Cpu className="w-5 h-5 text-cyan-400 shrink-0" />
         <div>
-          <h3 className="font-bold text-sm text-white">{stationName} 3D Digital Twin</h3>
-          <p className="text-[11px] text-slate-400">Click any component to inspect telemetry</p>
+          <h3 className="font-bold text-sm text-white font-heading tracking-wide">{stationName} 3D Digital Twin</h3>
+          <p className="text-[11px] text-slate-400 font-sans">Click any component to inspect telemetry</p>
         </div>
         <DataBadge type="simulated" />
       </div>
@@ -97,12 +97,12 @@ export default function Station3D({ stationName = 'Bharati', className = '' }) {
 
       {/* Component Detail Drawer */}
       {selectedComponent && (
-        <div className="absolute bottom-4 right-4 z-20 w-80 bg-[#0B132B]/95 backdrop-blur-md p-4 rounded-xl border border-[#3A86FF] shadow-2xl">
-          <div className="flex items-center justify-between border-b border-[#2A365C] pb-2 mb-3">
-            <h4 className="font-bold text-white text-base">{selectedComponent.name}</h4>
+        <div className="absolute bottom-4 right-4 z-20 w-80 bg-[#0B132B]/95 backdrop-blur-md p-4 rounded-xl border border-cyan-500/40 shadow-2xl">
+          <div className="flex items-center justify-between border-b border-white/10 pb-2.5 mb-3">
+            <h4 className="font-bold text-white text-base font-heading tracking-wide">{selectedComponent.name}</h4>
             <button
               onClick={() => setSelectedComponent(null)}
-              className="text-slate-400 hover:text-white"
+              className="text-slate-400 hover:text-white p-1 rounded-md transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -110,27 +110,27 @@ export default function Station3D({ stationName = 'Bharati', className = '' }) {
 
           <div className="space-y-2 text-xs">
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Status</span>
-              <span className={`font-semibold ${selectedComponent.status === 'Normal' ? 'text-emerald-400' : 'text-amber-400'}`}>
+              <span className="text-slate-400 font-sans">Status</span>
+              <span className={`font-semibold font-mono ${selectedComponent.status === 'Normal' ? 'text-emerald-400' : 'text-amber-400'}`}>
                 {selectedComponent.status}
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Health Score</span>
+              <span className="text-slate-400 font-sans">Health Score</span>
               <span className="font-mono text-cyan-300 font-bold">{selectedComponent.health}/100</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Operating Temp</span>
-              <span className="font-mono text-white">{selectedComponent.temp}</span>
+              <span className="text-slate-400 font-sans">Operating Temp</span>
+              <span className="font-mono text-slate-200">{selectedComponent.temp}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Power Output</span>
-              <span className="font-mono text-white">{selectedComponent.power}</span>
+              <span className="text-slate-400 font-sans">Power Output</span>
+              <span className="font-mono text-slate-200">{selectedComponent.power}</span>
             </div>
           </div>
 
-          <div className="mt-3 pt-2 border-t border-[#2A365C] flex justify-between items-center text-[10px] text-slate-400">
-            <span>Telemetry Status: LIVE</span>
+          <div className="mt-3.5 pt-2.5 border-t border-white/10 flex justify-between items-center text-[10px] text-slate-400 font-mono">
+            <span>TELEMETRY: LIVE</span>
             <DataBadge type="simulated" />
           </div>
         </div>
@@ -138,3 +138,4 @@ export default function Station3D({ stationName = 'Bharati', className = '' }) {
     </div>
   );
 }
+

@@ -20,9 +20,13 @@ export const fetchStations = () => api.get('/stations');
 export const fetchStationDetail = (name) => api.get(`/stations/${name}`);
 export const fetchEnergy = (station) => api.get(`/energy?station=${station}`);
 export const fetchLogistics = (station) => api.get(`/logistics?station=${station}`);
-export const fetchEnvironment = (station) => api.get(`/environment?station=${station}`);
+export const fetchEnvironment = (station, range = '24h') => api.get(`/environment?station=${station}&range=${range}`);
 export const fetchMaintenance = (station) => api.get(`/maintenance?station=${station}`);
 export const fetchAlerts = () => api.get('/alerts');
+
+export const fetchObservationCurrent = (station) => api.get(`/observations/current?station=${station}`);
+export const fetchObservationSeries = (station, range = '24h') => api.get(`/observations/series?station=${station}&range=${range}`);
+export const fetchObservationStats = (station) => api.get(`/observations/stats?station=${station}`);
 
 export const runSimulation = (params) => api.post('/simulation/run', params);
 export const queryAssistant = (payload) => api.post('/assistant/query', payload);
