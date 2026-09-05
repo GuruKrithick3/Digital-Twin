@@ -1,3 +1,27 @@
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.SENDER_EMAIL,
+    pass: process.env.EMAIL_APP_PASSWORD
+  }
+});
+
+async function sendEmailAlert(alert) {
+  try {
+    await transporter.sendMail({
+      from: process.env.SENDER_EMAIL,
+      to: process.env.RECEIVER_EMAIL,
+      subject: `🚨 ${alert.severity} ALERT - ${alert.station} - ${alert.title}`,
+      text: alert.message
+    });
+    console.log(`[EMAIL SENT] ${alert.title}`);
+  } catch (err) {
+    console.error('[EMAIL FAILED]', err.message);
+  }
+}
+
 const Alert = require('../models/Alert');
 const { ALERT_RULES } = require('../data/seedData');
 
@@ -40,6 +64,13 @@ function initAlertEngine(io) {
           sourceModule: 'environment',
           active: true
         });
+      }
+
+      // Send email for RED (critical) severity alerts
+      for (const alert of activeAlerts) {
+        if (alert.severity === 'RED') {
+          await sendEmailAlert(alert);
+        }
       }
 
       if (io && activeAlerts.length > 0) {

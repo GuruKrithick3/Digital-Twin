@@ -2,9 +2,12 @@ const express = require('express');
 const router = express.Router();
 const { runCausalSimulation } = require('../services/digitalTwin');
 const { STATIONS, SIMULATION } = require('../data/seedData');
+const initAlertEngine = require('../services/alertEngine');
+
+const alertEngine = initAlertEngine(null);
 
 // POST /api/simulation/run
-router.post('/run', (req, res) => {
+router.post('/run', async (req, res) => {
   const { station, temperature, windSpeed, population, fuelLevelLiters, energyDemandKw } = req.body;
 
   const key = String(station || 'Bharati').toLowerCase();
@@ -20,9 +23,18 @@ router.post('/run', (req, res) => {
     baseEnergyDemandKw: typeof energyDemandKw === 'number' ? energyDemandKw : SIMULATION.defaultEnergyDemandKw
   });
 
+  // Check thresholds and send email if critical
+  const triggeredAlerts = await alertEngine.evaluateAndEmitAlerts({
+    name: result.station,
+    fuelLevelLiters: result.inputs.fuelLevelLiters,
+    fuelCapacity: result.inputs.fuelCapacity,
+    temperature: result.inputs.temperature
+  });
+
   res.json({
     success: true,
-    simulation: result
+    simulation: result,
+    alerts: triggeredAlerts
   });
 });
 
