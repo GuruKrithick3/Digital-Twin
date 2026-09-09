@@ -3,17 +3,44 @@ import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, Radio, Snowflake, Clock, LogOut, CircleUserRound } from 'lucide-react';
 import DataBadge from './DataBadge';
 import { useAuth } from '../auth/AuthContext';
+import { fetchObservationCurrent } from '../services/api';
 
 export default function TopBar() {
-  const [time, setTime] = useState(new Date().toUTCString());
+  const [time, setTime] = useState('loading…');
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  const formatObserveTime = (iso) => {
+    if (!iso) return null;
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return null;
+    return d.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' }) + ' · ' +
+           d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+  };
+
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTime(new Date().toUTCString());
-    }, 1000);
-    return () => clearInterval(timer);
+    let cancelled = false;
+    Promise.all([
+      fetchObservationCurrent('Maitri'),
+      fetchObservationCurrent('Bharati')
+    ])
+      .then(([m, b]) => {
+        if (cancelled) return;
+        const ts = [
+          m?.data?.current?.timestamp,
+          b?.data?.current?.timestamp
+        ].filter(Boolean);
+        if (!ts.length) {
+          setTime('no observation data');
+          return;
+        }
+        const latest = ts.map(t => new Date(t).getTime()).sort((a, z) => z - a)[0];
+        setTime(formatObserveTime(new Date(latest).toISOString()));
+      })
+      .catch(() => {
+        if (!cancelled) setTime('no observation data');
+      });
+    return () => { cancelled = true; };
   }, []);
 
   const handleLogout = async () => {
@@ -48,7 +75,7 @@ export default function TopBar() {
           <DataBadge type="simulated" />
         </div>
 
-        <div className="flex items-center space-x-2 text-xs text-slate-300 font-mono bg-slate-900/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/[0.08]">
+        <div className="flex items-center space-x-2 text-xs text-slate-300 font-mono bg-slate-900/60 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/[0.08]" title="Latest observation timestamp from real station data">
           <Clock className="w-3.5 h-3.5 text-cyan-400" />
           <span className="tabular-nums text-slate-200">{time}</span>
         </div>
