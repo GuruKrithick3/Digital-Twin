@@ -139,6 +139,17 @@
     const maitriTemp = currentMaitri?.temperature != null ? currentMaitri.temperature : -28.4;
     const bharatiTemp = currentBharati?.temperature != null ? currentBharati.temperature : -21.6;
 
+    const formatObserveDate = (iso) => {
+      if (!iso) return null;
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return null;
+      return d.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' }) + ' · ' +
+             d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+    };
+
+    const maitriObserveDate = formatObserveDate(currentMaitri?.timestamp);
+    const bharatiObserveDate = formatObserveDate(currentBharati?.timestamp);
+
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -176,6 +187,7 @@
                   waterPct={76}
                   healthScore={84}
                   activeAlertsCount={1}
+                  observeDate={maitriObserveDate}
                 />
                 <StationCard
                   name="Bharati"
@@ -185,6 +197,7 @@
                   waterPct={77}
                   healthScore={94}
                   activeAlertsCount={1}
+                  observeDate={bharatiObserveDate}
                 />
               </>
             )}

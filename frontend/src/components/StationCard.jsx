@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Thermometer, ShieldAlert, Heart, Fuel, Droplet } from 'lucide-react';
 import DataBadge from './DataBadge';
 
-export default function StationCard({ name, status, temp, fuelPct, waterPct, healthScore, activeAlertsCount }) {
+export default function StationCard({ name, status, temp, fuelPct, waterPct, healthScore, activeAlertsCount, observeDate }) {
   const statusColor = status === 'normal' || status === 'operational'
     ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
     : status === 'warning'
@@ -15,7 +15,14 @@ export default function StationCard({ name, status, temp, fuelPct, waterPct, hea
       <div>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
-            <h3 className="font-bold text-xl text-white font-heading tracking-wide">{name} Station</h3>
+            <div className="flex flex-col">
+              <h3 className="font-bold text-xl text-white font-heading tracking-wide">{name} Station</h3>
+              {observeDate && (
+                <span className="text-[11px] text-slate-400 font-mono tracking-wide mt-0.5">
+                  Observed {observeDate}
+                </span>
+              )}
+            </div>
             <span className={`text-[10px] px-2.5 py-0.5 rounded-full font-bold font-mono tracking-wider border uppercase ${statusColor}`}>
               {status.toUpperCase()}
             </span>
